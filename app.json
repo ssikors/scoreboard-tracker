@@ -2,6 +2,7 @@
   "expo": {
     "name": "scoreboard-tracker",
     "slug": "scoreboard-tracker",
+    "scheme": "scoreboards",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -1,6 +1,6 @@
-
 import { Text, View } from "react-native";
 import { StyleSheet } from "react-native";
+import { Link } from "expo-router";
 
 export const UserListItem = ({ item }) => {
   return (
@@ -13,13 +13,22 @@ export const UserListItem = ({ item }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   userContainer: {
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 10,
     margin: 10,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 1.41,
+
+    elevation: 2
   },
   username: {
     fontSize: 18,
@@ -29,4 +38,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "dimgray",
   },
-})
+});
