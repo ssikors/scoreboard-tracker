@@ -1,0 +1,10 @@
+[
+  {"date": "23.03.2024", "goals": [
+    {"goal": "User X", "assist": "User Y"},
+    {"goal": "User Y", "assist": "User X"}
+  ]},
+  {"date": "24.03.2024", "goals": [
+    {"goal": "User Y", "assist": "User X"},
+    {"goal": "User Y", "assist": "User X"}
+  ]}
+]
