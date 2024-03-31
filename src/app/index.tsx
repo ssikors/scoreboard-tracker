@@ -5,9 +5,9 @@ import users from "../../assets/users.json";
 import { Link } from "expo-router";
 
 import { UserListItem } from "../components/UserListItem";
-import * as SQLite from "expo-sqlite/next";
-import { useEffect, useLayoutEffect, useState } from "react";
 
+import { useEffect, useLayoutEffect, useState } from "react";
+import * as SQLite from "expo-sqlite/next";
 const db = SQLite.openDatabaseSync("main");
 
 export default function App() {
@@ -33,7 +33,7 @@ export default function App() {
     db.execSync(
       "CREATE TABLE IF NOT EXISTS " +
         "Goals " +
-        "(GoalId INTEGER PRIMARY KEY AUTOINCREMENT, ScorerId INTEGER NOT NULL, AssistId INTEGER," +
+        "(GoalId INTEGER PRIMARY KEY AUTOINCREMENT, ScorerId INTEGER NOT NULL, AssistId INTEGER, Description TEXT," +
         " FOREIGN KEY(ScorerId) REFERENCES Players(PlayerId), " +
         " FOREIGN KEY(AssistId) REFERENCES Players(PlayerId));"
     );
