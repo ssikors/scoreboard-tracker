@@ -1,11 +1,10 @@
 import { Text, View } from "react-native";
 import { StyleSheet } from "react-native";
-import { Link } from "expo-router";
 
 export const UserListItem = ({ item }) => {
   return (
     <View style={styles.userContainer}>
-      <Text style={styles.username}>{item.name}</Text>
+      <Text style={styles.username}>{item.Name}</Text>
       <Text style={styles.statistic}>
         Goals: {item.goals} | Assists: {item.assists}
       </Text>
