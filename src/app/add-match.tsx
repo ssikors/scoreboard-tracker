@@ -11,7 +11,6 @@ import { StyleSheet } from "react-native";
 
 import * as SQLite from "expo-sqlite/next";
 import { Picker } from "@react-native-picker/picker";
-import { indexes } from "d3";
 const db = SQLite.openDatabaseSync("main");
 
 interface GoalRecord {
