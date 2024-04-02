@@ -11,17 +11,19 @@ import { StyleSheet } from "react-native";
 
 import * as SQLite from "expo-sqlite/next";
 import { Picker } from "@react-native-picker/picker";
+import { Player } from "./statistics";
 const db = SQLite.openDatabaseSync("main");
 
 interface GoalRecord {
   goal: string;
   assist: string | null;
+  description: string;
 }
 
 export default function MatchScreen() {
   const [players, setPlayers] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState<GoalRecord[]>([
-    { goal: "", assist: "" },
+    { goal: "", assist: "", description: "" },
   ]);
 
   useEffect(() => {
@@ -46,12 +48,54 @@ export default function MatchScreen() {
     setSelectedPlayers([...newPlayers]);
   };
 
+  const addDescription = (index: number, desc: string) => {
+    var newPlayers = selectedPlayers;
+    newPlayers[index].description = desc;
+    setSelectedPlayers([...newPlayers]);
+  };
+
+  const saveMatch = () => {
+    var date = new Date().toISOString().slice(0, 10);
+
+    console.log(date);
+    for (let i = 0; i < selectedPlayers.length; i++) {
+      var scorer = selectedPlayers[i].goal;
+      var scorerObj: { PlayerId: number } | null = db.getFirstSync(
+        `SELECT PlayerId FROM Players WHERE Name = "${scorer}";`
+      );
+      var scorerId = scorerObj.PlayerId;
+      var description = selectedPlayers[i].description;
+
+      console.log(i);
+      console.log(selectedPlayers);
+      var assister = selectedPlayers[i].assist;
+      if (assister != "") {
+        var assisterObj: { PlayerId: number } | null = db.getFirstSync(
+          `SELECT PlayerId FROM Players WHERE Name = "${assister}";`
+        );
+        var asisterId = assisterObj.PlayerId;
+
+        console.log(asisterId);
+        db.execSync(
+          `INSERT INTO Goals (ScorerId, AssistId, Description) VALUES(${scorerId}, ${asisterId}, "${description}");`
+        );
+      } else {
+        db.execSync(
+          `INSERT INTO Goals (ScorerId, Description) VALUES(${scorerId}, "${description}");`
+        );
+      }
+      db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
+
+      var goals = db.getAllSync("SELECT * FROM Goals;");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         {selectedPlayers.map((player, idx) => (
           <View key={idx} style={styles.goal}>
-            <View style={styles.goalElement}>
+            <View key={idx + " 1"} style={styles.goalElement}>
               <Text style={styles.label}>Goal:</Text>
               <Picker
                 style={styles.picker}
@@ -59,12 +103,13 @@ export default function MatchScreen() {
                 onValueChange={(val, unusedIndex) => addGoal(idx, val)}
                 itemStyle={styles.pickerItem}
               >
+                <Picker.Item key="" label="" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
               </Picker>
             </View>
-            <View style={styles.goalElement}>
+            <View key={idx + " 2"} style={styles.goalElement}>
               <Text style={styles.label}>Assist:</Text>
               <Picker
                 style={styles.picker}
@@ -72,23 +117,42 @@ export default function MatchScreen() {
                 onValueChange={(val, unusedIndex) => addAssist(idx, val)}
                 itemStyle={styles.pickerItem}
               >
+                <Picker.Item key="" label="" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
               </Picker>
             </View>
 
-            <TextInput multiline={true} style={styles.text} />
+            <TextInput
+              onChangeText={(val) => addDescription(idx, val)}
+              multiline={true}
+              style={styles.text}
+            />
           </View>
         ))}
+        <View key={"new"} style={styles.button}>
+          <Button
+            onPress={() => {
+              setSelectedPlayers([
+                ...selectedPlayers,
+                { goal: "", assist: "", description: "" },
+              ]);
+            }}
+            color={"orange"}
+            title="New goal"
+          ></Button>
+        </View>
 
-        <Button
-          onPress={() => {
-            setSelectedPlayers([...selectedPlayers, { goal: "", assist: "" }]);
-          }}
-          color={"orange"}
-          title="New goal"
-        ></Button>
+        <View key={"Save"} style={styles.button}>
+          <Button
+            onPress={() => {
+              saveMatch();
+            }}
+            color={"green"}
+            title="Save match"
+          ></Button>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -138,4 +202,5 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   pickerItem: {},
+  button: { margin: 10 },
 });
