@@ -39,7 +39,6 @@ export default function MatchScreen() {
     var newPlayers = selectedPlayers;
     newPlayers[index].goal = name;
     setSelectedPlayers([...newPlayers]);
-    console.log(selectedPlayers);
   };
 
   const addAssist = (index: number, name: string) => {
@@ -57,8 +56,11 @@ export default function MatchScreen() {
   const saveMatch = () => {
     var date = new Date().toISOString().slice(0, 10);
 
-    console.log(date);
     for (let i = 0; i < selectedPlayers.length; i++) {
+      if (selectedPlayers[i].goal == "") {
+        continue;
+      }
+
       var scorer = selectedPlayers[i].goal;
       var scorerObj: { PlayerId: number } | null = db.getFirstSync(
         `SELECT PlayerId FROM Players WHERE Name = "${scorer}";`
@@ -66,8 +68,6 @@ export default function MatchScreen() {
       var scorerId = scorerObj.PlayerId;
       var description = selectedPlayers[i].description;
 
-      console.log(i);
-      console.log(selectedPlayers);
       var assister = selectedPlayers[i].assist;
       if (assister != "") {
         var assisterObj: { PlayerId: number } | null = db.getFirstSync(
@@ -75,7 +75,6 @@ export default function MatchScreen() {
         );
         var asisterId = assisterObj.PlayerId;
 
-        console.log(asisterId);
         db.execSync(
           `INSERT INTO Goals (ScorerId, AssistId, Description) VALUES(${scorerId}, ${asisterId}, "${description}");`
         );
@@ -84,40 +83,52 @@ export default function MatchScreen() {
           `INSERT INTO Goals (ScorerId, Description) VALUES(${scorerId}, "${description}");`
         );
       }
-      db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
 
       var goals = db.getAllSync("SELECT * FROM Goals;");
     }
+    db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
+  };
+
+  const deleteRecord = (idx: number) => {
+    const newSelected = selectedPlayers;
+    newSelected.splice(idx, 1);
+    setSelectedPlayers([...newSelected]);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView key={"scrollview"}>
         {selectedPlayers.map((player, idx) => (
           <View key={idx} style={styles.goal}>
             <View key={idx + " 1"} style={styles.goalElement}>
-              <Text style={styles.label}>Goal:</Text>
+              <Text key={"goal"} style={styles.label}>
+                Goal:
+              </Text>
               <Picker
+                key={"goalP"}
                 style={styles.picker}
                 selectedValue={selectedPlayers[idx].goal}
                 onValueChange={(val, unusedIndex) => addGoal(idx, val)}
                 itemStyle={styles.pickerItem}
               >
-                <Picker.Item key="" label="" value={""} />
+                <Picker.Item key="none" label="" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
               </Picker>
             </View>
             <View key={idx + " 2"} style={styles.goalElement}>
-              <Text style={styles.label}>Assist:</Text>
+              <Text key={"assists"} style={styles.label}>
+                Assist:
+              </Text>
               <Picker
+                key={"assistsP"}
                 style={styles.picker}
                 selectedValue={selectedPlayers[idx].assist}
                 onValueChange={(val, unusedIndex) => addAssist(idx, val)}
                 itemStyle={styles.pickerItem}
               >
-                <Picker.Item key="" label="" value={""} />
+                <Picker.Item key="none" label="" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
@@ -125,14 +136,22 @@ export default function MatchScreen() {
             </View>
 
             <TextInput
+              key={"text"}
               onChangeText={(val) => addDescription(idx, val)}
               multiline={true}
               style={styles.text}
             />
+            <Button
+              onPress={() => {
+                deleteRecord(idx);
+              }}
+              title="Delete"
+            ></Button>
           </View>
         ))}
         <View key={"new"} style={styles.button}>
           <Button
+            key={"setButton"}
             onPress={() => {
               setSelectedPlayers([
                 ...selectedPlayers,
@@ -146,6 +165,7 @@ export default function MatchScreen() {
 
         <View key={"Save"} style={styles.button}>
           <Button
+            key={"saveButton"}
             onPress={() => {
               saveMatch();
             }}
