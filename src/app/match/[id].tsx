@@ -32,16 +32,17 @@ export default function MatchDetailScreen() {
   const [scores, setScores] = useState<Score[]>([]);
 
   useLayoutEffect(() => {
-    getGoals();
-    getScores();
+    const newGoals = getGoals();
+    getScores(newGoals);
+    console.log(scores);
   }, []);
 
-  const getScores = () => {
+  const getScores = (goals_) => {
     const newScores: Score[] = [];
 
-    for (let i = 0; i < goals.length; i++) {
+    for (let i = 0; i < goals_.length; i++) {
       // Scorer
-      const scorer = goals[i].Scorer;
+      const scorer = goals_[i].Scorer;
 
       const scorerObj = newScores.find((obj) => obj.player == scorer);
 
@@ -52,7 +53,7 @@ export default function MatchDetailScreen() {
         newScores.push(score);
       }
 
-      const assister = goals[i].Assister;
+      const assister = goals_[i].Assister;
       if (assister) {
         const assisterObj = newScores.find((obj) => obj.player == assister);
         if (assisterObj) {
@@ -65,7 +66,6 @@ export default function MatchDetailScreen() {
     }
 
     setScores([...newScores]);
-    console.log(newScores);
   };
 
   const getGoals = () => {
@@ -122,6 +122,7 @@ export default function MatchDetailScreen() {
     }
 
     setGoals([...newGoals]);
+    return newGoals;
   };
 
   const getMatchDay = () => {
@@ -165,7 +166,7 @@ export default function MatchDetailScreen() {
             )}
           </View>
         ))}
-        <Text style={{backgroundColor: "#eee", opacity: 1/2}}></Text>
+        <Text style={{ backgroundColor: "#eee", opacity: 1 / 2 }}></Text>
         {scores ? <Scoreboard scores={scores} /> : ""}
       </ScrollView>
     </SafeAreaView>
