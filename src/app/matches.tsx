@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as SQLite from "expo-sqlite/next";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 const db = SQLite.openDatabaseSync("main");
 
 export interface Match {
@@ -12,9 +12,14 @@ export interface Match {
 export default function MatchesScreen() {
   const [matches, setMatches] = useState<Match[]>([]);
 
+  useFocusEffect(
+    useCallback(() => {
+      getMatches();
+    }, [])
+  );
+
   useEffect(() => {
     getMatches();
-    console.log(matches);
   }, []);
 
   const getMatches = () => {
@@ -43,10 +48,9 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffe",
   },
   scrollView: {
-    backgroundColor: "#fff",
+    backgroundColor: "#eee",
   },
   match: {
     flex: 1,
@@ -54,7 +58,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     margin: 5,
-    padding: 6,
-    backgroundColor: "#ffa",
+    padding: 8,
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
   },
 });

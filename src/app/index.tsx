@@ -2,16 +2,22 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { FlatList } from "react-native";
 import users from "../../assets/users.json";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 
 import { UserListItem } from "../components/UserListItem";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import * as SQLite from "expo-sqlite/next";
 const db = SQLite.openDatabaseSync("main");
 
 export default function App() {
   const [players, setPlayers] = useState([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      getPlayers();
+    }, [])
+  );
 
   useEffect(() => {
     createTables();

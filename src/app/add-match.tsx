@@ -6,12 +6,15 @@ import {
   Button,
   ScrollView,
   SafeAreaView,
+  Pressable,
 } from "react-native";
 import { StyleSheet } from "react-native";
 
 import * as SQLite from "expo-sqlite/next";
 import { Picker } from "@react-native-picker/picker";
-import { Player } from "./statistics";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { useRouter } from "expo-router";
+
 const db = SQLite.openDatabaseSync("main");
 
 interface GoalRecord {
@@ -26,6 +29,8 @@ export default function MatchScreen() {
     { goal: "", assist: "", description: "" },
   ]);
 
+  const router = useRouter()
+  
   useEffect(() => {
     getPlayers();
   }, []);
@@ -83,14 +88,14 @@ export default function MatchScreen() {
           `INSERT INTO Goals (ScorerId, Description, Date) VALUES(${scorerId}, "${description}", "${date}");`
         );
       }
-
-      var goals = db.getAllSync("SELECT * FROM Goals;");
     }
     try {
       db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
     } catch (error) {
       console.log("Added to existing match");
     }
+
+    router.replace("/")
   };
 
   const deleteRecord = (idx: number) => {
@@ -104,6 +109,17 @@ export default function MatchScreen() {
       <ScrollView key={"scrollview"}>
         {selectedPlayers.map((player, idx) => (
           <View key={idx} style={styles.goal}>
+            <View style={{alignItems: "flex-end"}}>
+              <Pressable
+                onPress={() => {
+                  deleteRecord(idx);
+                }}
+                style={styles.delete}
+              >
+                <Icon name="close" size={30} color="#c40001"></Icon>
+              </Pressable>
+            </View>
+
             <View key={idx + " 1"} style={styles.goalElement}>
               <Text key={"goal"} style={styles.label}>
                 Goal:
@@ -115,7 +131,7 @@ export default function MatchScreen() {
                 onValueChange={(val, unusedIndex) => addGoal(idx, val)}
                 itemStyle={styles.pickerItem}
               >
-                <Picker.Item key="none" label="" value={""} />
+                <Picker.Item key="none" label="None" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
@@ -132,7 +148,7 @@ export default function MatchScreen() {
                 onValueChange={(val, unusedIndex) => addAssist(idx, val)}
                 itemStyle={styles.pickerItem}
               >
-                <Picker.Item key="none" label="" value={""} />
+                <Picker.Item key="none" label="None" value={""} />
                 {players.map((p) => (
                   <Picker.Item key={p.name} label={p.Name} value={p.Name} />
                 ))}
@@ -145,29 +161,23 @@ export default function MatchScreen() {
               multiline={true}
               style={styles.text}
             />
-            <Button
-              onPress={() => {
-                deleteRecord(idx);
-              }}
-              title="Delete"
-            ></Button>
           </View>
         ))}
-        <View key={"new"} style={styles.button}>
-          <Button
-            key={"setButton"}
+        <View style={styles.span}>
+          <Pressable
             onPress={() => {
               setSelectedPlayers([
                 ...selectedPlayers,
                 { goal: "", assist: "", description: "" },
               ]);
             }}
-            color={"orange"}
-            title="New goal"
-          ></Button>
+            style={styles.button}
+          >
+            <Icon name="plus-circle" size={48} color="orange"></Icon>
+          </Pressable>
         </View>
 
-        <View key={"Save"} style={styles.button}>
+        <View key={"Save"} style={styles.saveSpan}>
           <Button
             key={"saveButton"}
             onPress={() => {
@@ -185,7 +195,7 @@ export default function MatchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffe",
+    backgroundColor: "#f9f9f9",
     justifyContent: "flex-start",
     gap: 10,
     padding: 15,
@@ -193,6 +203,7 @@ const styles = StyleSheet.create({
   goal: {
     backgroundColor: "white",
     padding: 14,
+    paddingBottom: 0,
     borderColor: "#eee",
     borderRadius: 10,
     borderWidth: 2,
@@ -206,7 +217,7 @@ const styles = StyleSheet.create({
     width: 300,
     padding: 10,
     borderWidth: 1,
-    marginBottom: 40,
+    marginBottom: 8,
     textAlignVertical: "top",
     borderColor: "#eee",
   },
@@ -226,5 +237,22 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   pickerItem: {},
-  button: { margin: 10 },
+  button: {
+    margin: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  span: {
+    alignItems: "center",
+    margin: 10
+  },
+  delete: {
+    alignItems: "flex-end",
+    marginVertical: -12,
+    marginHorizontal: -6,
+  },
+  saveSpan: {
+    alignItems: "center",
+    marginTop: 60
+  }
 });

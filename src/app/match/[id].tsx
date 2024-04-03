@@ -1,5 +1,13 @@
-import { useLocalSearchParams } from "expo-router";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  Modal,
+} from "react-native";
 import { useLayoutEffect, useState } from "react";
 
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -30,6 +38,10 @@ export default function MatchDetailScreen() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [date, setDate] = useState<string>("");
   const [scores, setScores] = useState<Score[]>([]);
+  const [deletion, setDeletion] = useState<boolean>(false);
+  const router = useRouter()
+
+  const params = useLocalSearchParams();
 
   useLayoutEffect(() => {
     const newGoals = getGoals();
@@ -133,14 +145,49 @@ export default function MatchDetailScreen() {
     return newDate.Date;
   };
 
-  const params = useLocalSearchParams();
+  const deleteMatch = () => {
+    db.execSync(
+      `DELETE FROM Matches WHERE Date = "${date}"; DELETE FROM Goals WHERE Date = "${date}";`
+    );
+    router.replace("/")
+  };
 
   return (
     <SafeAreaView>
+      <Modal animationType="slide" transparent={true} visible={deletion}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this match?
+            </Text>
+            <View style={{ flex: 1, flexDirection: "row" }}>
+              <Pressable
+                style={styles.button}
+                onPress={() => setDeletion(!deletion)}
+              >
+                <Text style={styles.textStyle}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={styles.deleteButton}
+                onPress={() => deleteMatch()}
+              >
+                <Text style={styles.textStyle}>Delete</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <ScrollView style={styles.scroll}>
-        <Text key="titleSection" style={styles.title}>
-          Match from {date}
-        </Text>
+        <View key="titleSection" style={styles.title}>
+          <Text>Match from {date}</Text>
+          <Pressable
+            onPress={() => {
+              setDeletion(true);
+            }}
+          >
+            <Icon name="trash" size={20} color={"black"} />
+          </Pressable>
+        </View>
 
         {goals.map((item) => (
           <View key={item.GoalId} style={styles.goal}>
@@ -176,6 +223,9 @@ export default function MatchDetailScreen() {
 const styles = StyleSheet.create({
   scroll: { backgroundColor: "#eee" },
   title: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
     backgroundColor: "#ddd",
     color: "black",
     padding: 16,
@@ -198,5 +248,53 @@ const styles = StyleSheet.create({
   players: {
     fontSize: 17,
     alignItems: "center",
+  },
+  centeredView: {
+    flex: 1,
+    backgroundColor: "rgba(52, 52, 52, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    maxHeight: 160,
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    padding: 8,
+    margin: 2,
+    marginHorizontal: 14,
+    borderRadius: 6,
+    elevation: 2,
+    backgroundColor: "#44f",
+  },
+  deleteButton: {
+    padding: 8,
+    margin: 2,
+    marginHorizontal: 14,
+    borderRadius: 6,
+    elevation: 2,
+    backgroundColor: "red",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
   },
 });

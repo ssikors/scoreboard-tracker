@@ -3,14 +3,17 @@ import { View, Text, TextInput, Button } from "react-native";
 import { StyleSheet } from "react-native";
 
 import * as SQLite from "expo-sqlite/next";
+import { useRouter } from "expo-router";
 
 const db = SQLite.openDatabaseSync("main");
 
 export default function AddPlayerScreen() {
   const [name, setName] = useState<string>("");
+  const router = useRouter()
 
   const createUser = () => {
     db.execSync(`INSERT INTO Players ( Name ) VALUES ( '${name}' );`)
+    router.replace("/")
   }
 
   return (
