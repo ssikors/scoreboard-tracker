@@ -24,13 +24,49 @@ interface Goal {
   Description: string | null;
 }
 
+import { Score, Scoreboard } from "../../components/Scoreboard";
+
 export default function MatchDetailScreen() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [date, setDate] = useState<string>("");
+  const [scores, setScores] = useState<Score[]>([]);
 
   useLayoutEffect(() => {
     getGoals();
+    getScores();
   }, []);
+
+  const getScores = () => {
+    const newScores: Score[] = [];
+
+    for (let i = 0; i < goals.length; i++) {
+      // Scorer
+      const scorer = goals[i].Scorer;
+
+      const scorerObj = newScores.find((obj) => obj.player == scorer);
+
+      if (scorerObj) {
+        scorerObj.goals = scorerObj.goals + 1;
+      } else {
+        const score: Score = { player: scorer, goals: 1, assists: 0 };
+        newScores.push(score);
+      }
+
+      const assister = goals[i].Assister;
+      if (assister) {
+        const assisterObj = newScores.find((obj) => obj.player == assister);
+        if (assisterObj) {
+          assisterObj.assists = assisterObj.assists + 1;
+        } else {
+          const score: Score = { player: assister, goals: 0, assists: 1 };
+          newScores.push(score);
+        }
+      }
+    }
+
+    setScores([...newScores]);
+    console.log(newScores);
+  };
 
   const getGoals = () => {
     const date = getMatchDay();
@@ -86,7 +122,6 @@ export default function MatchDetailScreen() {
     }
 
     setGoals([...newGoals]);
-    console.log(newGoals);
   };
 
   const getMatchDay = () => {
@@ -130,15 +165,25 @@ export default function MatchDetailScreen() {
             )}
           </View>
         ))}
+        <Text style={{backgroundColor: "#eee", opacity: 1/2}}></Text>
+        {scores ? <Scoreboard scores={scores} /> : ""}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { backgroundColor: "white" },
-  title: { backgroundColor: "#999", color: "white", padding: 16, fontSize: 18 },
+  scroll: { backgroundColor: "#eee" },
+  title: {
+    backgroundColor: "#ddd",
+    color: "black",
+    padding: 16,
+    fontSize: 18,
+    borderColor: "#999",
+    borderWidth: 1,
+  },
   goal: {
+    backgroundColor: "white",
     padding: 14,
     paddingVertical: 8,
     borderBottomColor: "#bbb",
