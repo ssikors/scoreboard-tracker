@@ -33,15 +33,15 @@ export default function App() {
     db.execSync(
       "CREATE TABLE IF NOT EXISTS " +
         "Goals " +
-        "(GoalId INTEGER PRIMARY KEY AUTOINCREMENT, ScorerId INTEGER NOT NULL, AssistId INTEGER, Description TEXT," +
+        "(GoalId INTEGER PRIMARY KEY AUTOINCREMENT, ScorerId INTEGER NOT NULL, AssistId INTEGER, Description TEXT, Date DATE NOT NULL," +
         " FOREIGN KEY(ScorerId) REFERENCES Players(PlayerId), " +
         " FOREIGN KEY(AssistId) REFERENCES Players(PlayerId));"
     );
-
+    
     db.execSync(
       "CREATE TABLE IF NOT EXISTS " +
         "Matches " +
-        "(MatchId INTEGER PRIMARY KEY AUTOINCREMENT, Date DATE NOT NULL);"
+        "(MatchId INTEGER PRIMARY KEY AUTOINCREMENT, Date DATE UNIQUE NOT NULL);"
     );
   };
 
@@ -56,6 +56,9 @@ export default function App() {
       ></FlatList>
       <Link style={styles.statistics} href={"/statistics"}>
         View statistics
+      </Link>
+      <Link style={styles.statistics} href={"/matches"}>
+        View matches
       </Link>
       <Link style={styles.match} href={"/add-match"}>
         New match

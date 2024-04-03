@@ -76,17 +76,21 @@ export default function MatchScreen() {
         var asisterId = assisterObj.PlayerId;
 
         db.execSync(
-          `INSERT INTO Goals (ScorerId, AssistId, Description) VALUES(${scorerId}, ${asisterId}, "${description}");`
+          `INSERT INTO Goals (ScorerId, AssistId, Description, Date) VALUES(${scorerId}, ${asisterId}, "${description}", "${date}");`
         );
       } else {
         db.execSync(
-          `INSERT INTO Goals (ScorerId, Description) VALUES(${scorerId}, "${description}");`
+          `INSERT INTO Goals (ScorerId, Description, Date) VALUES(${scorerId}, "${description}", "${date}");`
         );
       }
 
       var goals = db.getAllSync("SELECT * FROM Goals;");
     }
-    db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
+    try {
+      db.execSync(`INSERT INTO Matches (Date) VALUES("${date}");`);
+    } catch (error) {
+      console.log("Added to existing match");
+    }
   };
 
   const deleteRecord = (idx: number) => {

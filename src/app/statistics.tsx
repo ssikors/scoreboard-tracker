@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { View, Text, FlatList } from "react-native";
 import { VictoryChart, VictoryLine, VictoryTheme } from "victory-native";
-import SQLite from "react-native-sqlite-storage";
+
 
 export interface PlayerStat {
   date?: string;
