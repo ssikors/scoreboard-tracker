@@ -17,7 +17,7 @@ import * as SQLite from "expo-sqlite/next";
 
 const db = SQLite.openDatabaseSync("main");
 
-interface GoalSql {
+export interface GoalSql {
   GoalId: number;
   ScorerId: number;
   AssistId?: number;
@@ -25,7 +25,7 @@ interface GoalSql {
   Date: string;
 }
 
-interface Goal {
+export interface Goal {
   GoalId: number;
   Scorer: string;
   Assister?: string;

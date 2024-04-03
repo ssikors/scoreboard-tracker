@@ -27,7 +27,7 @@ export default function App() {
   const getPlayers = () => {
     const newPlayers = db.getAllSync("SELECT * FROM PLAYERS");
     setPlayers(newPlayers);
-    console.log(newPlayers)
+    console.log(newPlayers);
   };
 
   const createTables = () => {
@@ -43,7 +43,7 @@ export default function App() {
         " FOREIGN KEY(ScorerId) REFERENCES Players(PlayerId), " +
         " FOREIGN KEY(AssistId) REFERENCES Players(PlayerId));"
     );
-    
+
     db.execSync(
       "CREATE TABLE IF NOT EXISTS " +
         "Matches " +
@@ -53,24 +53,25 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Link style={styles.statistics} href={"/add-player"}>
-        Add player
+      <View style={styles.links}>
+        <Link style={styles.link} href={"/statistics"}>
+          <Text style={styles.linkText}>Statistics</Text>
+        </Link>
+        <Link style={styles.link} href={"/matches"}>
+          <Text style={styles.linkText}>Matches</Text>
+        </Link>
+        <Link style={styles.link} href={"/add-match"}>
+          <Text style={styles.linkText}>New match</Text>
+        </Link>
+      </View>
+      <Link style={styles.add} href={"/add-player"}>
+        <Text style={[styles.linkText, {color: "white"}]}>Add player</Text>
       </Link>
       <FlatList
+        style={styles.flatlist}
         data={players}
         renderItem={({ item }) => <UserListItem key={item.Name} item={item} />}
       ></FlatList>
-      <Link style={styles.statistics} href={"/statistics"}>
-        View statistics
-      </Link>
-      <Link style={styles.statistics} href={"/matches"}>
-        View matches
-      </Link>
-      <Link style={styles.match} href={"/add-match"}>
-        New match
-      </Link>
-
-      <StatusBar style="auto" />
     </View>
   );
 }
@@ -78,16 +79,37 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffe",
+    backgroundColor: "#f4f4f4",
     justifyContent: "center",
-    paddingTop: 15,
   },
-  statistics: {
-    textAlign: "center",
-    margin: 30,
+  flatlist: {
+    backgroundColor: "#fff",
   },
-  match: {
-    marginBottom: 40,
+  links: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 0,
+    marginBottom: 10,
+    marginTop: 8
+  },
+  add: {
     textAlign: "center",
+    margin: 8,
+    marginHorizontal: 110,
+    padding: 4,
+    backgroundColor: "#e80",
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  link: {
+    backgroundColor: "#fcfcfc",
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor:"#999"
+  },
+  linkText: {
+    fontSize: 18,
   },
 });

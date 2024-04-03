@@ -5,9 +5,6 @@ export const UserListItem = ({ item }) => {
   return (
     <View style={styles.userContainer}>
       <Text style={styles.username}>{item.Name}</Text>
-      <Text style={styles.statistic}>
-        Goals: {item.goals} | Assists: {item.assists}
-      </Text>
     </View>
   );
 };
@@ -32,6 +29,7 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 18,
     fontWeight: "semibold",
+    marginHorizontal: 6
   },
   statistic: {
     fontSize: 14,
