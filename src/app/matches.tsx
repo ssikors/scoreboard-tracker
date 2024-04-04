@@ -36,8 +36,8 @@ export default function MatchesScreen() {
             href={`/match/${item.MatchId}`}
             key={item.MatchId}
           >
-            <Text>Match {item.MatchId}</Text>
-            <Text>: {item.Date}</Text>
+            <Text>Matchday:</Text>
+            <Text> {item.Date}</Text>
           </Link>
         ))}
       </ScrollView>
@@ -53,9 +53,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
   },
   match: {
-    flex: 1,
+    flexDirection: "row",
     justifyContent: "space-between",
     textAlign: "center",
+    borderRadius: 14,
     fontSize: 24,
     margin: 5,
     padding: 8,

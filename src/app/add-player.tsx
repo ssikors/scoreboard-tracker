@@ -36,7 +36,7 @@ export default function AddPlayerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffe",
+    backgroundColor: "#f9f9f9",
     justifyContent: "flex-start",
     paddingTop: 60,
     alignItems: "center",
