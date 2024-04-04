@@ -12,6 +12,9 @@ export default function AddPlayerScreen() {
   const router = useRouter()
 
   const createUser = () => {
+    if (name.trim() == "") {
+      return
+    }
     db.execSync(`INSERT INTO Players ( Name ) VALUES ( '${name}' );`)
     router.replace("/")
   }

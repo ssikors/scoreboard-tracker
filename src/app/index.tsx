@@ -64,34 +64,38 @@ export default function App() {
           <Text style={styles.linkText}>New match</Text>
         </Link>
       </View>
-      <Link style={styles.add} href={"/add-player"}>
-        <Text style={[styles.linkText, {color: "white"}]}>Add player</Text>
-      </Link>
+
       <FlatList
         style={styles.flatlist}
         data={players}
-        renderItem={({ item }) => <UserListItem key={item.Name} item={item} />}
+        renderItem={({ item }) => (
+          <UserListItem db={db} key={item.Name} item={item} />
+        )}
       ></FlatList>
+      <View style={styles.links}>
+        <Link style={styles.add} href={"/add-player"}>
+          <Text style={[styles.linkText, { color: "white" }]}>Add player</Text>
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "#f4f4f4",
     justifyContent: "center",
   },
   flatlist: {
     backgroundColor: "#fff",
+    height: "80%"
   },
   links: {
-    flex: 1,
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     justifyContent: "space-around",
     padding: 0,
     marginBottom: 10,
-    marginTop: 8
+    marginTop: 8,
   },
   add: {
     textAlign: "center",
@@ -100,14 +104,13 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: "#e80",
     borderRadius: 10,
-    borderWidth: 1
+    borderWidth: 1,
   },
   link: {
-    backgroundColor: "#fcfcfc",
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor:"#999"
+    fontWeight: "600",
+    color: "#00b",
+    borderBottomWidth: 1,
+    borderColor: "#00b"
   },
   linkText: {
     fontSize: 18,
