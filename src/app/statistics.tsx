@@ -103,6 +103,11 @@ export default function StatisticsScreen() {
 
     const matches: MatchSql[] = db.getAllSync("SELECT * FROM Matches;");
 
+    if (!matches || matches.length == 0) {
+      return
+    }
+
+    
     for (let i = 0; i < matches.length; i++) {
       const date = matches[i].Date;
       const dateObject = new Date(date);
