@@ -27,7 +27,7 @@ export const Scoreboard = ({ scores }: Props) => {
         </DataTable.Title>
       </DataTable.Header>
       {scores.sort((a, b) => b.goals - a.goals).map((item) => (
-        <DataTable.Row key={item.player} style={styles.row}>
+        <DataTable.Row key={item.player + item.goals} style={styles.row}>
           <DataTable.Cell textStyle={styles.cell} key="player">{item.player[0].toUpperCase() + item.player.slice(1)}</DataTable.Cell>
           <DataTable.Cell textStyle={styles.cell} key="goals">{item.goals}</DataTable.Cell>
           <DataTable.Cell textStyle={styles.cell} key="assists">{item.assists}</DataTable.Cell>

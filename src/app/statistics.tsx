@@ -1,14 +1,25 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { View, Text, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import {
   VictoryAxis,
   VictoryChart,
+  VictoryContainer,
+  VictoryLabel,
+  VictoryLegend,
   VictoryLine,
   VictoryTheme,
 } from "victory-native";
 import * as SQLite from "expo-sqlite/next";
 import { GoalSql } from "./match/[id]";
+import { Scoreboard } from "../components/Scoreboard";
 
 const db = SQLite.openDatabaseSync("main");
 
@@ -40,6 +51,26 @@ interface MatchSql {
 
 export default function StatisticsScreen() {
   const [playerStats, setPlayerStats] = useState<PlayersStats>();
+  const [colors, setColors] = useState([]);
+  const [maxGoals, setMaxGoals] = useState(null);
+  const [maxAssists, setMaxAssists] = useState(null);
+
+  const populateColors = (players) => {
+    const playerCount = players.players.length;
+    const quant = 255 / playerCount;
+
+    const newColors = [];
+    for (let i = 0; i < playerCount; i++) {
+      const r = quant * i;
+      const b = 255 - quant * i;
+
+      const color = `rgba(${r}, ${Math.random() * 225}, ${b}, ${
+        Math.random() / 3 + 0.5
+      })`;
+      newColors.push(color);
+    }
+    setColors([...newColors]);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -53,6 +84,8 @@ export default function StatisticsScreen() {
 
   const getPlayerStats = () => {
     const sqlPlayers: PlayerSql[] = db.getAllSync("SELECT * FROM Players;");
+    var maxG = 0;
+    var maxA = 0;
 
     const newPlayers: PlayersStats = { players: [] };
 
@@ -76,8 +109,19 @@ export default function StatisticsScreen() {
 
       for (let i = 0; i < newPlayers.players.length; i++) {
         const player = newPlayers.players[i];
-        player.goals.push({ x: dateObject, y: 0 });
-        player.assists.push({ x: dateObject, y: 0 });
+        if (player.goals.length == 0) {
+          player.goals.push({ x: dateObject, y: 0 });
+          player.assists.push({ x: dateObject, y: 0 });
+        } else {
+          player.goals.push({
+            x: dateObject,
+            y: player.goals[player.goals.length - 1].y,
+          });
+          player.assists.push({
+            x: dateObject,
+            y: player.assists[player.assists.length - 1].y,
+          });
+        }
       }
 
       const daysGoals: GoalSql[] = db.getAllSync(
@@ -89,10 +133,12 @@ export default function StatisticsScreen() {
         const assisterId = daysGoals[i].AssistId;
 
         const scorer = newPlayers.players.find((p) => p.playerId == scorerId);
-        console.log("Scorer:", scorer);
+
         const goalDataPoint = scorer.goals.find((g) => g.x == dateObject);
-        console.log(goalDataPoint);
+
         goalDataPoint.y = goalDataPoint.y + 1;
+
+        maxG = Math.max(maxG, goalDataPoint.y);
 
         if (assisterId) {
           const assister = newPlayers.players.find(
@@ -102,161 +148,176 @@ export default function StatisticsScreen() {
             (a) => a.x == dateObject
           );
           assistDataPoint.y = assistDataPoint.y + 1;
+          maxA = Math.max(maxA, assistDataPoint.y);
         }
       }
     }
-    console.log(newPlayers.players[0].assists);
+    setMaxAssists(maxA);
+    setMaxGoals(maxG);
+    populateColors(newPlayers);
     setPlayerStats(newPlayers);
   };
 
   return (
-    <View>
-      <VictoryChart theme={VictoryTheme.material} height={300}>
-        <VictoryAxis
-          tickFormat={(tick) => {
-            const date = new Date(tick);
-            var string = "";
-            string = string + date.getDate() + "/" + date.getMonth() + "/'" + date.getFullYear().toString().slice(2,4)
-            return string
-          }}
-        />
-        <VictoryAxis tickFormat={(tick) => Math.round(tick)} dependentAxis />
-        {playerStats ? (
-          <VictoryLine
-            style={{
-              data: { stroke: "#c43a31" },
-              parent: { border: "1px solid #ccc" },
+    <SafeAreaView>
+      <ScrollView style={styles.scrollView}>
+        <Text style={styles.title}>Goals</Text>
+        <VictoryChart
+          key={"Goals chart"}
+          theme={VictoryTheme.material}
+          height={280}
+        >
+          <VictoryAxis
+            key={"X"}
+            tickFormat={(tick) => {
+              const date = new Date(tick);
+              var string = "";
+              string =
+                string +
+                date.getDate() +
+                "/" +
+                date.getMonth() +
+                "/'" +
+                date.getFullYear().toString().slice(2, 4);
+              return string;
             }}
-            data={[
-              ...playerStats.players[1].goals,
-              { x: new Date("2024-04-08"), y: 3 },
-              { x: new Date("2024-04-09"), y: 5 },
-            ]}
           />
+          <VictoryAxis
+            key={"Y"}
+            tickFormat={(tick) => Math.round(tick)}
+            tickValues={Array.from(
+              { length: maxGoals + 2 },
+              (value, index) => index
+            )}
+            dependentAxis
+          />
+          {playerStats
+            ? playerStats.players.map((item, index) => {
+                if (item.goals[item.goals.length - 1].y == 0) {
+                  return "";
+                } else {
+                  return (
+                    <VictoryLine
+                      key={index}
+                      style={{
+                        data: { stroke: colors[index] },
+                        parent: { border: "1px solid #ccc" },
+                      }}
+                      data={[...item.goals]}
+                    />
+                  );
+                }
+              })
+            : ""}
+        </VictoryChart>
+        <Text style={styles.title}>Assists</Text>
+        <VictoryChart
+          key={"Assists chart"}
+          theme={VictoryTheme.material}
+          height={280}
+
+        >
+          <VictoryAxis
+            key={"X"}
+            tickFormat={(tick) => {
+              const date = new Date(tick);
+              var string = "";
+              string =
+                string +
+                date.getDate() +
+                "/" +
+                date.getMonth() +
+                "/'" +
+                date.getFullYear().toString().slice(2, 4);
+              return string;
+            }}
+          />
+          <VictoryAxis
+            key={"Y"}
+            tickFormat={(tick) => Math.round(tick)}
+            tickValues={Array.from(
+              { length: maxAssists + 2 },
+              (value, index) => index
+            )}
+            dependentAxis
+          />
+          {playerStats
+            ? playerStats.players.map((item, index) => {
+                if (item.assists[item.assists.length - 1].y == 0) {
+                  return "";
+                } else {
+                  return (
+                    <VictoryLine
+                      key={index}
+                      style={{
+                        data: { stroke: colors[index] },
+                        parent: { border: "1px solid #ccc" },
+                      }}
+                      data={[...item.assists]}
+                    />
+                  );
+                }
+              })
+            : ""}
+        </VictoryChart>
+        {playerStats ? (
+          <View style={styles.legend}>
+            <VictoryLegend
+            borderPadding={10}
+              x={40}
+              y={0}
+              orientation="vertical"
+              gutter={18}
+              itemsPerRow={2}
+              style={{ border: { stroke: "black" } }}
+              colorScale={colors}
+              data={playerStats.players.map((item) => {
+                const obj = { name: item.player };
+                return obj;
+              })}
+            />
+          </View>
         ) : (
           ""
         )}
-
-        {/* <VictoryLine
-          style={{
-            data: { stroke: "#caaa31" },
-            parent: { border: "1px solid #ccc" },
-          }}
-          data={[
-            { x: new Date("2022-03-25"), y: 2 },
-            { x: new Date("2022-03-26"), y: 3 },
-            { x: new Date("2022-03-28"), y: 4 },
-            { x: new Date("2022-03-30"), y: 5 },
-            { x: new Date("2022-03-31"), y: 6 },
-            { x: new Date("2022-04-01"), y: 7 },
-            { x: new Date("2022-04-11"), y: 7 },
-            { x: new Date("2022-04-21"), y: 9 },
-          ]}
-        /> */}
-      </VictoryChart>
-      <VictoryChart theme={VictoryTheme.material} height={300}>
-        <VictoryAxis tickValues={[2, 4, 6, 8]} />
-        <VictoryLine
-          style={{
-            data: { stroke: "#c43a31" },
-            parent: { border: "1px solid #ccc" },
-          }}
-          data={[
-            { x: new Date("2022-03-25"), y: 2 },
-            { x: new Date("2022-03-26"), y: 3 },
-            { x: new Date("2022-03-28"), y: 5 },
-            { x: new Date("2022-03-30"), y: 4 },
-            { x: new Date("2022-03-31"), y: 7 },
-            { x: new Date("2022-04-01"), y: 8 },
-            { x: new Date("2022-04-11"), y: 9 },
-            { x: new Date("2022-04-21"), y: 50 },
-          ]}
-        />
-        <VictoryLine
-          style={{
-            data: { stroke: "#caaa31" },
-            parent: { border: "1px solid #ccc" },
-          }}
-          data={[
-            { x: new Date("2022-03-25"), y: 2 },
-            { x: new Date("2022-03-26"), y: 3 },
-            { x: new Date("2022-03-28"), y: 4 },
-            { x: new Date("2022-03-30"), y: 5 },
-            { x: new Date("2022-03-31"), y: 6 },
-            { x: new Date("2022-04-01"), y: 7 },
-            { x: new Date("2022-04-11"), y: 7 },
-            { x: new Date("2022-04-21"), y: 9 },
-          ]}
-        />
-      </VictoryChart>
-    </View>
+        {playerStats ? (
+          <Scoreboard
+            scores={playerStats.players
+              .map((item) => {
+                const obj = {
+                  player: item.player,
+                  assists: item.assists[item.assists.length - 1].y,
+                  goals: item.goals[item.goals.length - 1].y,
+                };
+                return obj;
+              })
+              .sort((a, b) => {
+                if (a.goals - b.goals != 0) {
+                  return a.goals - b.goals;
+                } else {
+                  return b.assists - a.assists;
+                }
+              })}
+          ></Scoreboard>
+        ) : (
+          ""
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-// let newStats: PlayersStats = playerStats;
-
-// console.log("use effect");
-
-// for (let i = 0; i < matches.length; i++) {
-//   let date = matches[i].date;
-
-//   for (let j = 0; j < matches[i].goals.length; j++) {
-//     let goal = matches[i].goals[j];
-//     let scorer = goal.goal;
-//     let assister = goal.assist;
-
-//     let player = newStats.players.find((p) => p.player == scorer);
-//     console.log(i);
-//     console.log(scorer, player);
-
-//     if (player) {
-//       if (player.stats.length == 0) {
-//         player.stats.push({ date: date, goals: 1, assists: 0 });
-//       } else {
-//         const lastStat = player.stats[player.stats.length - 1];
-//         if (lastStat.date == date) {
-//           lastStat.goals = lastStat.goals + 1;
-//         } else {
-//           player.stats.push({
-//             date: date,
-//             goals: lastStat.goals + 1,
-//             assists: lastStat.assists,
-//           });
-//         }
-//       }
-//     } else {
-//       newStats.players.push({
-//         player: scorer,
-//         stats: [{ date: date, goals: 1, assists: 0 }],
-//       });
-//     }
-
-//     if (assister) {
-//       player = newStats.players.find((p) => p.player == assister);
-
-//       if (player) {
-//         if (player.stats.length == 0) {
-//           player.stats.push({ date: date, goals: 0, assists: 1 });
-//         } else {
-//           const lastStat = player.stats[player.stats.length - 1];
-//           if (lastStat.date == date) {
-//             lastStat.assists = lastStat.assists + 1;
-//           } else {
-//             player.stats.push({
-//               date: date,
-//               assists: lastStat.assists + 1,
-//               goals: lastStat.goals,
-//             });
-//           }
-//         }
-//       } else {
-//         newStats.players.push({
-//           player: assister,
-//           stats: [{ date: date, goals: 0, assists: 1 }],
-//         });
-//       }
-//     }
-//   }
-// }
-// setPlayerStats(newStats);
-// console.log(newStats);
+const styles = StyleSheet.create({
+  scrollView: {
+    backgroundColor: "white",
+  },
+  legend: {
+    marginBottom: -150
+  },
+  title: {
+    textAlign: "center",
+    fontSize: 18,
+    marginTop: 8,
+    marginBottom: -16
+  }
+});
